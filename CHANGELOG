@@ -4,14 +4,46 @@ Sag Changes
 Version 0.6.0
 -------------
 
+Breaking Changes
+
+  * The HTTP status was incorrectly being added to the root of the response
+    object in addition to where it belongs in `$resp->headers->_HTTP->status`.
+    It is now removed. Applications that were using it at the `$resp->status`
+    should fix their code to use the proper location.
+
 New Features
+
+  * Sag's internals now use HTTP/1.1 instead of HTTP/1.0. This requires zero
+    code changes for your application because Sag's interface is not impacted
+    by this.
 
   * You can now set cookies that will be sent with every request using
     setCookie(), and retrieve them with getCookie().
 
+  * SagUserUtils is the first of several utility classes that will be added to
+    Sag. It gently wraps the Sag interface to make managing CouchDB users much
+    easier. You can create and get users, and change their password.
+
   * An example of how to proxy the cookie based auth's AuthSession cookie from
     your PHP layer to CouchDB, making it easier to have user accounts in your
     application without rewriting user management yet again.
+
+Fixed Bugs
+
+  * As of CouchDB 1.1.0 inline attachments are sent as multipart HTTP
+    responses, which was breaking our parser. This is now fixed by always
+    sending an Accept header for 'application/json'. Thanks to Rob Newson and
+    Dale Harvey in #couchdb for helping on this. (closes #23)
+
+  * Previously an HTTP response code >=400 to a HEAD request would not throw a
+    SagCouchException because there was no error property in the message body
+    (because HEAD responses do not have bodies). Now a SagCouchException is
+    thrown as expected with the exception's code set to the HTTP response code.
+    This also creates a slight performance boost for parsing HEAD requests.
+
+  * When calling setDatabase() and specifying to create the database if it does
+    not already exist, the logic now uses a HEAD request instead of a GET. This
+    was a typo/mistake at the time, so it is getting bug status.
 
 Version 0.5.1
 -------------
